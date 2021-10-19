@@ -13,7 +13,7 @@ class ModelTests(TestCase):
             email=email,
             username=username,
             password=password
-            )
+        )
 
         self.assertEqual(user.email, email)
         self.assertEqual(user.username, username)
@@ -26,7 +26,7 @@ class ModelTests(TestCase):
             email,
             'test',
             'something124'
-            )
+        )
 
         self.assertEqual(user.email, email.lower())
 
@@ -37,7 +37,7 @@ class ModelTests(TestCase):
                 None,
                 'test',
                 'something124'
-                )
+            )
 
     def test_new_user_username_invalid_username(self):
         """Test creating user with no username raises error"""
@@ -46,7 +46,7 @@ class ModelTests(TestCase):
                 'test@csdt.org',
                 None,
                 'something124'
-                )
+            )
 
     def test_create_new_superuser(self):
         """Test creating a new superuser"""
@@ -54,7 +54,7 @@ class ModelTests(TestCase):
             'dev@csdt.org',
             'dev',
             'test123'
-            )
+        )
 
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
