@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 from django.utils import timezone
+# from django.conf import settings
 
 
 class UserManager(BaseUserManager):
@@ -43,3 +44,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
+
+
+class Tag(models.Model):
+    """Tag to be used for a project"""
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(default="", max_length=255)
+
+    def __str__(self):
+        return self.name
