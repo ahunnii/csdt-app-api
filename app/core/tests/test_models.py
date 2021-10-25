@@ -9,6 +9,13 @@ def sample_user(username='test', email='test@csdt.org', password='testpass'):
     return get_user_model().objects.create_user(username, email, password)
 
 
+def sample_application(name="CSnap",
+                       link="/static/csnap/index.html",
+                       description="Base application"):
+    """Create a test application"""
+    return models.Application.objects.create(name, link, description)
+
+
 class ModelTests(TestCase):
 
     def test_create_new_user_successful(self):
@@ -71,3 +78,45 @@ class ModelTests(TestCase):
         tag = models.Tag.objects.create(name='Adinkra')
 
         self.assertEqual(str(tag), tag.name)
+
+    def test_application_str(self):
+        """Test the application string representation"""
+        app = models.Application.objects.create(
+            name="CSnap",
+            link='something',
+            description='Something'
+        )
+
+        self.assertEqual(str(app), app.name)
+
+    def test_software_str(self):
+        """Test the tool string representation"""
+        app = models.Application.objects.create(
+            name="CSnap",
+            link='something',
+            description='Something'
+        )
+        software = models.Software.objects.create(
+            name="Adinkra",
+            default_file="Default data to load",
+            application=app
+        )
+
+        self.assertEqual(str(software), software.name)
+
+    def test_project_str(self):
+        """Test the project string representation"""
+        app = models.Application.objects.create(
+            name="CSnap",
+            link='something',
+            description='Something'
+        )
+        project = models.Project.objects.create(
+            owner=sample_user(),
+            title="Cool Adinkra Project",
+            application=app,
+            data="Some random project data string",
+            thumbnail="Some random image string"
+        )
+
+        self.assertEqual(str(project), project.title)

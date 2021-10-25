@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 from django.utils import timezone
-# from django.conf import settings
+from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 
 
 class UserManager(BaseUserManager):
@@ -53,3 +54,56 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Application(models.Model):
+    """Application object, i.e CSnap"""
+    name = models.CharField(max_length=255, unique=True)
+    link = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Software(models.Model):
+    """Software object, i.e. Adinkra"""
+    name = models.CharField(max_length=255, unique=True)
+    default_file = models.CharField(max_length=255)
+    application = models.ForeignKey(Application, on_delete=models.DO_NOTHING)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Project(models.Model):
+    """Project object"""
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    title = models.CharField(max_length=255)
+    application = models.ForeignKey(Application, on_delete=models.DO_NOTHING)
+    data = models.CharField(max_length=255)
+    thumbnail = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+    tags = models.ManyToManyField('Tag')
+    modified_date_history = ArrayField(
+        models.DateTimeField(),
+        default=list
+    )
+    modified_data_history = ArrayField(
+        models.CharField(max_length=255),
+        default=list
+    )
+    modified_thumbnail_history = ArrayField(
+        models.CharField(max_length=255),
+        default=list
+        )
+
+    def __str__(self):
+        return self.title
