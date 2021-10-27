@@ -166,3 +166,40 @@ class PrivateProjectApiTests(TestCase):
         self.assertEqual(tags.count(), 2)
         self.assertIn(tag1, tags)
         self.assertIn(tag2, tags)
+
+    def test_partial_update_project(self):
+        """Test updating a project with patch."""
+        project = sample_project(user=self.user, application=self.application)
+        project.tags.add(sample_tag(name='Update'))
+        new_tag = sample_tag(name='New Project')
+
+        payload = {'title': 'Patched Project', 'tags': [new_tag.id]}
+        url = detail_url(project.id)
+        self.client.patch(url, payload)
+
+        project.refresh_from_db()
+        self.assertEqual(project.title, payload['title'])
+        tags = project.tags.all()
+        self.assertEqual(len(tags), 1)
+        self.assertIn(new_tag, tags)
+
+    def test_full_update_project(self):
+        """Test updating a project with put."""
+        project = sample_project(user=self.user, application=self.application)
+        project.tags.add(sample_tag(name='Full Update'))
+        payload = {
+            'title': 'Full updated project',
+            'application': self.application.pk,
+            'data': 'Fresh new data',
+            'thumbnail': 'Fresh new image',
+        }
+        url = detail_url(project.id)
+        self.client.put(url, payload)
+
+        project.refresh_from_db()
+        self.assertEqual(project.title, payload['title'])
+        self.assertEqual(project.data, payload['data'])
+        self.assertEqual(project.thumbnail, payload['thumbnail'])
+        self.assertEqual(project.application.pk, payload['application'])
+        tags = project.tags.all()
+        self.assertEqual(len(tags), 0)
