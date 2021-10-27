@@ -21,7 +21,7 @@ class TagViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         """Return objects for only authenticated users"""
-        return self.queryset.order_by('-name')
+        return self.queryset.all().order_by('-name')
 
     def perform_create(self, serializer):
         """Create a new tag only if user is staff"""
@@ -42,6 +42,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """Retrieve the projects for the authenticated user"""
         return self.queryset.filter(owner=self.request.user)
 
+    def get_serializer_class(self):
+        """Return the appropriate serializer class"""
+        if self.action == 'retrieve':
+            return serializers.ProjectDetailSerializer
+
+        return self.serializer_class
+
 
 class ApplicationViewSet(viewsets.ModelViewSet):
     """Manage applications in the database"""
@@ -52,7 +59,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve the applications for the authenticated user"""
-        return self.queryset.all()
+        return self.queryset.order_by('-name')
 
 
 class SoftwareViewSet(viewsets.ModelViewSet):
@@ -64,4 +71,4 @@ class SoftwareViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve the software for the authenticated user"""
-        return self.queryset.all()
+        return self.queryset.order_by('-name')

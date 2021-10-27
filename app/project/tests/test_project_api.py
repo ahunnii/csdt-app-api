@@ -5,12 +5,34 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Project, Application
+from core.models import Project, Application, Software, Tag
 
-from project.serializers import ProjectSerializer
+from project.serializers import ProjectSerializer, ProjectDetailSerializer
 
 
 PROJECTS_URL = reverse('project:project-list')
+
+
+def detail_url(project_id):
+    """Return project detail URL"""
+    return reverse('project:project-detail', args=[project_id])
+
+
+def sample_tag(name='High School'):
+    """Create and return a sample tag"""
+    return Tag.objects.create(name=name)
+
+
+def sample_software(**params):
+    """Create and return a sample software"""
+    defaults = {
+        'name': 'Adinkra',
+        'default_file': 'Cool spiral',
+        'application': 1,
+    }
+
+    defaults.update(params)
+    return Software.objects.create(**defaults)
 
 
 def sample_project(user, **params):
@@ -93,4 +115,15 @@ class PrivateProjectApiTests(TestCase):
         serializer = ProjectSerializer(project, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_view_project_detail(self):
+        """Test viewing project detail"""
+        project = sample_project(user=self.user, application=self.application)
+        project.tags.add(sample_tag())
+
+        url = detail_url(project.id)
+        res = self.client.get(url)
+
+        serializer = ProjectDetailSerializer(project)
         self.assertEqual(res.data, serializer.data)

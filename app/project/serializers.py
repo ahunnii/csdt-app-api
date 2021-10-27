@@ -47,3 +47,9 @@ class ProjectSerializer(serializers.ModelSerializer):
                   'modified_date_history', 'modified_data_history',
                   'modified_thumbnail_history')
         read_only_fields = ('id',)
+
+
+class ProjectDetailSerializer(ProjectSerializer):
+    """Serializer for Project details"""
+    tags = TagSerializer(many=True, read_only=True)
+    application = ApplicationSerializer(many=False, read_only=True)
