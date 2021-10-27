@@ -23,7 +23,13 @@ class TagViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         """Return objects for only authenticated users"""
-        return self.queryset.all().order_by('-name')
+        assigned_only = bool(
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        queryset = self.queryset
+        if assigned_only:
+            queryset = queryset.filter(project__isnull=False)
+        return queryset.all().order_by('-name').distinct()
 
     def perform_create(self, serializer):
         """Create a new tag only if user is staff"""

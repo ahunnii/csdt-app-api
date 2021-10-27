@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Tag
+from core.models import Tag, Project, Application
 
 from project.serializers import TagSerializer
 
@@ -101,3 +101,54 @@ class PrivateTagsApiTests(TestCase):
         res = client.post(TAGS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieve_tags_assigned_to_projects(self):
+        """Test filtering tags by those assigned to projects"""
+        tag1 = Tag.objects.create(name='Skateboarding')
+        tag2 = Tag.objects.create(name='Rhythm Wheels')
+        project = Project.objects.create(
+            owner=self.user,
+            title='Skateboarding',
+            application=Application.objects.create(
+                name="Skateboarding",
+                link='skateboarding/index.html'
+            ),
+            data='something',
+        )
+        project.tags.add(tag1)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        serializer1 = TagSerializer(tag1)
+        serializer2 = TagSerializer(tag2)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
+
+    def test_retrieve_tags_assigned_unique(self):
+        """Test filtering tags by assigned returns unique items"""
+        tag = Tag.objects.create(name='Wheels')
+        Tag.objects.create(name='Beads')
+        project1 = Project.objects.create(
+            owner=self.user,
+            title='Rhythm Wheel',
+            application=Application.objects.create(
+                name="Rhythm Wheels",
+                link='rw/index.html'
+            ),
+            data='something',
+        )
+        project1.tags.add(tag)
+        project2 = Project.objects.create(
+            owner=self.user,
+            title='Bead Loom',
+            application=Application.objects.create(
+                name="Virtual Bead Loom",
+                link='bl/index.html'
+            ),
+            data='something',
+        )
+        project2.tags.add(tag)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)
