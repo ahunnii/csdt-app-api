@@ -40,9 +40,23 @@ class ProjectViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication, )
     permission_classes = (IsAuthenticated, )
 
+    def _params_to_ints(self, qs):
+        """Convert a list of string ids to a list of integers"""
+        return [int(str_id) for str_id in qs.split(',')]
+
     def get_queryset(self):
         """Retrieve the projects for the authenticated user"""
-        return self.queryset.filter(owner=self.request.user)
+        tags = self.request.query_params.get('tags')
+        applications = self.request.query_params.get('applications')
+        queryset = self.queryset
+        if tags:
+            tag_ids = self._params_to_ints(tags)
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if applications:
+            application_ids = self._params_to_ints(applications)
+            queryset = queryset.filter(application__id__in=application_ids)
+
+        return queryset.filter(owner=self.request.user)
 
     def get_serializer_class(self):
         """Return the appropriate serializer class"""

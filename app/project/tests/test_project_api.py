@@ -253,3 +253,68 @@ class ProjectImageUploadTests(TestCase):
         )
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_projects_by_tags(self):
+        """Test returning projects with specific tags"""
+        project1 = sample_project(
+            user=self.user,
+            application=self.application,
+            title="Adinkra Project"
+        )
+        project2 = sample_project(
+            user=self.user,
+            application=self.application,
+            title="CC Project"
+        )
+        tag1 = sample_tag(name='Adinkra')
+        tag2 = sample_tag(name='Cornrow Curves JS')
+        project1.tags.add(tag1)
+        project2.tags.add(tag2)
+        project3 = sample_project(
+            user=self.user,
+            application=self.application,
+            title="Henna Project"
+        )
+
+        res = self.client.get(
+            PROJECTS_URL,
+            {'tags': f'{tag1.id},{tag2.id}'}
+        )
+
+        serializer1 = ProjectSerializer(project1)
+        serializer2 = ProjectSerializer(project2)
+        serializer3 = ProjectSerializer(project3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
+
+    def test_filter_projects_by_application(self):
+        """Test returning projects by specific application"""
+        application1 = sample_application(
+            name="Henna",
+            link='henna/index.html'
+        )
+        application2 = sample_application(
+            name="Graffiti",
+            link='graffiti/index.html'
+        )
+        project1 = sample_project(
+            user=self.user,
+            application=application1,
+            title="Henna Project"
+        )
+        project2 = sample_project(
+            user=self.user,
+            application=application2,
+            title="Graffiti Project"
+        )
+
+        res = self.client.get(
+            PROJECTS_URL,
+            {'applications': application1.pk}
+        )
+
+        serializer1 = ProjectSerializer(project1)
+        serializer2 = ProjectSerializer(project2)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
