@@ -1,9 +1,19 @@
+import uuid
+import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+
+
+def project_image_file_path(instance, filename):
+    """Generate file path for new project image"""
+    ext = filename.split('.')[-1]
+    filename = f'{uuid.uuid4()}.{ext}'
+
+    return os.path.join('uploads/project/', filename)
 
 
 class UserManager(BaseUserManager):
@@ -87,7 +97,7 @@ class Project(models.Model):
     title = models.CharField(max_length=255)
     application = models.ForeignKey(Application, on_delete=models.DO_NOTHING)
     data = models.CharField(max_length=255)
-    thumbnail = models.CharField(max_length=255)
+    thumbnail = models.ImageField(null=True, upload_to=project_image_file_path)
     description = models.TextField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)

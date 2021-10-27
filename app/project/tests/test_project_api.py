@@ -1,9 +1,13 @@
+import tempfile
+import os
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APIClient
+
+from PIL import Image
 
 from core.models import Project, Application, Software, Tag
 
@@ -16,6 +20,11 @@ PROJECTS_URL = reverse('project:project-list')
 def detail_url(project_id):
     """Return project detail URL"""
     return reverse('project:project-detail', args=[project_id])
+
+
+def image_upload_url(project_id):
+    """Return URL for project thumbnail upload"""
+    return reverse('project:project-upload-image', args=[project_id])
 
 
 def sample_tag(name='High School'):
@@ -42,7 +51,6 @@ def sample_project(user, **params):
         'title': 'Cool Project',
         'application': 1,
         'data': 'Sample data',
-        'thumbnail': 'Sample thumbnail',
     }
     defaults.update(params)
 
@@ -134,7 +142,6 @@ class PrivateProjectApiTests(TestCase):
             'title': 'Adinkra Spirals',
             'application': self.application.pk,
             'data': 'Sample data',
-            'thumbnail': 'Sample thumbnail',
         }
 
         res = self.client.post(PROJECTS_URL, payload)
@@ -155,7 +162,6 @@ class PrivateProjectApiTests(TestCase):
             'title': 'Variable Curves',
             'application': self.application.pk,
             'data': 'Another sample data',
-            'thumbnail': 'Another sample thumbnail',
             'tags': [tag1.id, tag2.id]
         }
 
@@ -191,7 +197,6 @@ class PrivateProjectApiTests(TestCase):
             'title': 'Full updated project',
             'application': self.application.pk,
             'data': 'Fresh new data',
-            'thumbnail': 'Fresh new image',
         }
         url = detail_url(project.id)
         self.client.put(url, payload)
@@ -199,7 +204,52 @@ class PrivateProjectApiTests(TestCase):
         project.refresh_from_db()
         self.assertEqual(project.title, payload['title'])
         self.assertEqual(project.data, payload['data'])
-        self.assertEqual(project.thumbnail, payload['thumbnail'])
         self.assertEqual(project.application.pk, payload['application'])
         tags = project.tags.all()
         self.assertEqual(len(tags), 0)
+
+
+class ProjectImageUploadTests(TestCase):
+    """Tests with image uploads for projects"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            'imageTest',
+            'imageTest@csdt.org',
+            'imagepass'
+        )
+        self.client.force_authenticate(self.user)
+        self.application = sample_application()
+        self.project = sample_project(
+            user=self.user,
+            application=self.application
+        )
+
+    def tearDown(self):
+        self.project.thumbnail.delete()
+
+    def test_upload_image_to_project(self):
+        """Test uploading an image to a project"""
+        url = image_upload_url(self.project.id)
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
+            img = Image.new('RGB', (10, 10))
+            img.save(ntf, format='JPEG')
+            ntf.seek(0)
+            res = self.client.post(url, {'thumbnail': ntf}, format='multipart')
+
+        self.project.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('thumbnail', res.data)
+        self.assertTrue(os.path.exists(self.project.thumbnail.path))
+
+    def test_upload_image_bad_request(self):
+        """Test uploading an invalid image"""
+        url = image_upload_url(self.project.id)
+        res = self.client.post(
+            url,
+            {'thumbnail': 'notimage'},
+            format='multipart'
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

@@ -35,10 +35,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all()
     )
-    # application = serializers.PrimaryKeyRelatedField(
-    #     many=False,
-    #     queryset=Application.objects.all(),
-    # )
 
     class Meta:
         model = Project
@@ -52,4 +48,12 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectDetailSerializer(ProjectSerializer):
     """Serializer for Project details"""
     tags = TagSerializer(many=True, read_only=True)
-    # application = ApplicationSerializer(many=False, read_only=True)
+
+
+class ProjectImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to recipes"""
+
+    class Meta:
+        model = Project
+        fields = ('id', 'thumbnail')
+        read_only_fields = ('id',)
