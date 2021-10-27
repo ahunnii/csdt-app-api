@@ -6,6 +6,9 @@ from project import views
 
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
+router.register('applications', views.ApplicationViewSet)
+router.register('softwares', views.SoftwareViewSet)
+router.register('projects', views.ProjectViewSet)
 
 app_name = 'project'
 

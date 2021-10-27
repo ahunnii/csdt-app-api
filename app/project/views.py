@@ -1,10 +1,12 @@
 from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, \
+                                       IsAuthenticated
 
 from django.core.exceptions import PermissionDenied
 
-from core.models import Tag
+from core.models import Tag, Project, Application, Software
+
 from project import serializers
 
 
@@ -27,3 +29,39 @@ class TagViewSet(viewsets.GenericViewSet,
             raise PermissionDenied()
 
         serializer.save()
+
+
+class ProjectViewSet(viewsets.ModelViewSet):
+    """Manage projects in the database"""
+    serializer_class = serializers.ProjectSerializer
+    queryset = Project.objects.all()
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        """Retrieve the projects for the authenticated user"""
+        return self.queryset.filter(owner=self.request.user)
+
+
+class ApplicationViewSet(viewsets.ModelViewSet):
+    """Manage applications in the database"""
+    serializer_class = serializers.ApplicationSerializer
+    queryset = Application.objects.all()
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        """Retrieve the applications for the authenticated user"""
+        return self.queryset.all()
+
+
+class SoftwareViewSet(viewsets.ModelViewSet):
+    """Manage software in the database"""
+    serializer_class = serializers.SoftwareSerializer
+    queryset = Software.objects.all()
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        """Retrieve the software for the authenticated user"""
+        return self.queryset.all()
