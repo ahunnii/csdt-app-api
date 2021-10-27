@@ -35,14 +35,14 @@ class ProjectSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all()
     )
-    application = serializers.PrimaryKeyRelatedField(
-        many=False,
-        queryset=Application.objects.all(),
-    )
+    # application = serializers.PrimaryKeyRelatedField(
+    #     many=False,
+    #     queryset=Application.objects.all(),
+    # )
 
     class Meta:
         model = Project
-        fields = ('id', 'title', 'owner', 'application', 'data', 'thumbnail',
+        fields = ('id', 'title', 'application', 'data', 'thumbnail',
                   'description', 'created_date', 'modified_date', 'tags',
                   'modified_date_history', 'modified_data_history',
                   'modified_thumbnail_history')
@@ -52,4 +52,4 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectDetailSerializer(ProjectSerializer):
     """Serializer for Project details"""
     tags = TagSerializer(many=True, read_only=True)
-    application = ApplicationSerializer(many=False, read_only=True)
+    # application = ApplicationSerializer(many=False, read_only=True)

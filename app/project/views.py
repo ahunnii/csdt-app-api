@@ -49,6 +49,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         return self.serializer_class
 
+    def perform_create(self, serializer):
+        """Create a new project"""
+        serializer.save(owner=self.request.user)
+
 
 class ApplicationViewSet(viewsets.ModelViewSet):
     """Manage applications in the database"""
@@ -60,6 +64,10 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve the applications for the authenticated user"""
         return self.queryset.order_by('-name')
+
+    def perform_create(self, serializer):
+        """Create a new project"""
+        serializer.save()
 
 
 class SoftwareViewSet(viewsets.ModelViewSet):

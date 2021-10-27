@@ -127,3 +127,42 @@ class PrivateProjectApiTests(TestCase):
 
         serializer = ProjectDetailSerializer(project)
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_basic_project(self):
+        """Test creating basic project"""
+        payload = {
+            'title': 'Adinkra Spirals',
+            'application': self.application.pk,
+            'data': 'Sample data',
+            'thumbnail': 'Sample thumbnail',
+        }
+
+        res = self.client.post(PROJECTS_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        project = Project.objects.get(id=res.data['id'])
+        for key in payload.keys():
+            if key == 'application':
+                self.assertEqual(payload['application'],
+                                 getattr(project, 'application').pk)
+            else:
+                self.assertEqual(payload[key], getattr(project, key))
+
+    def test_create_project_with_tags(self):
+        """Test creating project with tags"""
+        tag1 = sample_tag(name="Cornrow Curves")
+        tag2 = sample_tag(name="High School")
+        payload = {
+            'title': 'Variable Curves',
+            'application': self.application.pk,
+            'data': 'Another sample data',
+            'thumbnail': 'Another sample thumbnail',
+            'tags': [tag1.id, tag2.id]
+        }
+
+        res = self.client.post(PROJECTS_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        project = Project.objects.get(id=res.data['id'])
+        tags = project.tags.all()
+        self.assertEqual(tags.count(), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
