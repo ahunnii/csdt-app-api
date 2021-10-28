@@ -21,6 +21,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
+class ApplicationDetailSerializer(ApplicationSerializer):
+    """Serializer for application details"""
+
+
 class SoftwareSerializer(serializers.ModelSerializer):
     """Serializer for software objects"""
     class Meta:

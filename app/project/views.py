@@ -12,6 +12,27 @@ from core.models import Tag, Project, Application, Software
 from project import serializers
 
 
+class BaseProjectAttrViewSet(viewsets.ModelViewSet):
+    """Base viewset for apps and software attributes"""
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        """Return related objects"""
+        return self.queryset.all().order_by('-id')
+
+    def perform_create(self, serializer):
+        """Create a new object if staff"""
+        if not self.request.user.is_staff:
+            raise PermissionDenied()
+        serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        if not self.request.user.is_staff:
+            raise PermissionDenied()
+        return super().update(request, *args, **kwargs)
+
+
 class TagViewSet(viewsets.GenericViewSet,
                  mixins.ListModelMixin,
                  mixins.CreateModelMixin):
@@ -98,20 +119,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
         )
 
 
-class ApplicationViewSet(viewsets.ModelViewSet):
+class ApplicationViewSet(BaseProjectAttrViewSet):
     """Manage applications in the database"""
     serializer_class = serializers.ApplicationSerializer
     queryset = Application.objects.all()
-    authentication_classes = (TokenAuthentication, )
-    permission_classes = (IsAuthenticated, )
-
-    def get_queryset(self):
-        """Retrieve the applications for the authenticated user"""
-        return self.queryset.order_by('-name')
-
-    def perform_create(self, serializer):
-        """Create a new project"""
-        serializer.save()
 
 
 class SoftwareViewSet(viewsets.ModelViewSet):
