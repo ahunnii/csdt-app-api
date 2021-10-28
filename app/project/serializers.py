@@ -50,14 +50,23 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class ProjectDetailSerializer(ProjectSerializer):
-    """Serializer for Project details"""
+    """Serializer for project details"""
     tags = TagSerializer(many=True, read_only=True)
 
 
 class ProjectImageSerializer(serializers.ModelSerializer):
-    """Serializer for uploading images to recipes"""
+    """Serializer for uploading images to projects"""
 
     class Meta:
         model = Project
         fields = ('id', 'thumbnail')
+        read_only_fields = ('id',)
+
+
+class ProjectDataSerializer(serializers.ModelSerializer):
+    """Serializer for uploading files to projects"""
+
+    class Meta:
+        model = Project
+        fields = ('id', 'data')
         read_only_fields = ('id',)

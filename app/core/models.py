@@ -16,6 +16,14 @@ def project_image_file_path(instance, filename):
     return os.path.join('uploads/project/', filename)
 
 
+def project_data_file_path(instance, filename):
+    """Generate file path for new project data"""
+    ext = filename.split('.')[-1]
+    filename = f'{uuid.uuid4()}.{ext}'
+
+    return os.path.join('uploads/project/', filename)
+
+
 class UserManager(BaseUserManager):
 
     def create_user(self, email, username, password=None, **extra_fields):
@@ -96,7 +104,7 @@ class Project(models.Model):
     )
     title = models.CharField(max_length=255)
     application = models.ForeignKey(Application, on_delete=models.DO_NOTHING)
-    data = models.CharField(max_length=255)
+    data = models.FileField(null=True, upload_to=project_data_file_path)
     thumbnail = models.ImageField(null=True, upload_to=project_image_file_path)
     description = models.TextField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)

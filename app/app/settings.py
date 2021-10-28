@@ -137,5 +137,6 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = '/vol/web/media'
 STATIC_ROOT = '/vol/web/static'
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 
 AUTH_USER_MODEL = 'core.User'

@@ -3,6 +3,7 @@ import os
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.conf import settings
 
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -25,6 +26,11 @@ def detail_url(project_id):
 def image_upload_url(project_id):
     """Return URL for project thumbnail upload"""
     return reverse('project:project-upload-image', args=[project_id])
+
+
+def data_upload_url(project_id):
+    """Return URL for project thumbnail upload"""
+    return reverse('project:project-upload-data', args=[project_id])
 
 
 def sample_tag(name='High School'):
@@ -50,19 +56,18 @@ def sample_project(user, **params):
     defaults = {
         'title': 'Cool Project',
         'application': 1,
-        'data': 'Sample data',
     }
     defaults.update(params)
 
     return Project.objects.create(owner=user, **defaults)
 
 
-def sample_application(**params):
+def sample_application(name='Test', **params):
     """Create and return a sample application"""
 
     defaults = {
-        'name': "Test",
-        'link': 'Link',
+        'name': name,
+        'link': f'{name}/index.html',
         'description': 'Text'
     }
     defaults.update(params)
@@ -141,7 +146,6 @@ class PrivateProjectApiTests(TestCase):
         payload = {
             'title': 'Adinkra Spirals',
             'application': self.application.pk,
-            'data': 'Sample data',
         }
 
         res = self.client.post(PROJECTS_URL, payload)
@@ -161,7 +165,6 @@ class PrivateProjectApiTests(TestCase):
         payload = {
             'title': 'Variable Curves',
             'application': self.application.pk,
-            'data': 'Another sample data',
             'tags': [tag1.id, tag2.id]
         }
 
@@ -196,14 +199,12 @@ class PrivateProjectApiTests(TestCase):
         payload = {
             'title': 'Full updated project',
             'application': self.application.pk,
-            'data': 'Fresh new data',
         }
         url = detail_url(project.id)
         self.client.put(url, payload)
 
         project.refresh_from_db()
         self.assertEqual(project.title, payload['title'])
-        self.assertEqual(project.data, payload['data'])
         self.assertEqual(project.application.pk, payload['application'])
         tags = project.tags.all()
         self.assertEqual(len(tags), 0)
@@ -318,3 +319,47 @@ class ProjectImageUploadTests(TestCase):
         serializer2 = ProjectSerializer(project2)
         self.assertIn(serializer1.data, res.data)
         self.assertNotIn(serializer2.data, res.data)
+
+
+class ProjectDataUploadTests(TestCase):
+    """Test file uploads to a project"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            'dataTest',
+            'dataTest@csdt.org',
+            'datapass'
+        )
+
+        self.client.force_authenticate(self.user)
+        self.application = sample_application(name='Wheel')
+        self.project = sample_project(
+            user=self.user,
+            application=self.application
+        )
+
+    def tearDown(self):
+        self.project.data.delete()
+
+    def test_upload_data_to_project(self):
+        """Test uploading an data to a project"""
+        url = data_upload_url(self.project.id)
+        project_file = settings.BASE_DIR / 'samples/data.xml'
+        with open(project_file, encoding="utf-8") as tdf:
+            res = self.client.post(url, {'data': tdf})
+
+        self.project.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('data', res.data)
+        self.assertTrue(os.path.exists(self.project.data.path))
+
+    def test_upload_data_bad_request(self):
+        """Test uploading an invalid file"""
+        url = data_upload_url(self.project.id)
+        res = self.client.post(
+            url,
+            {'data': 'test'},
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

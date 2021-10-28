@@ -91,6 +91,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return serializers.ProjectDetailSerializer
         elif self.action == 'upload_image':
             return serializers.ProjectImageSerializer
+        elif self.action == 'upload_data':
+            return serializers.ProjectDataSerializer
 
         return self.serializer_class
 
@@ -101,6 +103,26 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=True, url_path='upload-image')
     def upload_image(self, request, pk=None):
         """Upload a thumbnail to a project"""
+        project = self.get_object()
+        serializer = self.get_serializer(
+            project,
+            data=request.data
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    @action(methods=['POST'], detail=True, url_path='upload-data')
+    def upload_data(self, request, pk=None):
+        """Upload a project's data to a project"""
         project = self.get_object()
         serializer = self.get_serializer(
             project,
