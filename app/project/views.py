@@ -100,6 +100,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """Create a new project"""
         serializer.save(owner=self.request.user)
 
+    def update(self, request, *args, **kwargs):
+        """Append latest changes to history arrays for data."""
+        project = self.get_object()
+        project.modified_date_history.append(project.modified_date)
+        project.modified_data_history.append(project.data)
+        project.modified_thumbnail_history.append(project.thumbnail)
+        project.save()
+        return super().update(request, *args, **kwargs)
+
     @action(methods=['POST'], detail=True, url_path='upload-image')
     def upload_image(self, request, pk=None):
         """Upload a thumbnail to a project"""

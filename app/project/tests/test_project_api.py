@@ -209,6 +209,22 @@ class PrivateProjectApiTests(TestCase):
         tags = project.tags.all()
         self.assertEqual(len(tags), 0)
 
+    def test_update_track_history(self):
+        """Test updating the history arrays with each project"""
+        project = sample_project(user=self.user, application=self.application)
+        project.tags.add(sample_tag(name='Challenge'))
+        project_file = settings.BASE_DIR / 'samples/data.xml'
+        url = detail_url(project.id)
+        with open(project_file, encoding="utf-8") as tdf:
+            payload = {'data': tdf}
+            res = self.client.patch(url, payload)
+
+        project.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(project.modified_date_history), 1)
+        self.assertEqual(len(project.modified_data_history), 1)
+        self.assertEqual(len(project.modified_thumbnail_history), 1)
+
 
 class ProjectImageUploadTests(TestCase):
     """Tests with image uploads for projects"""

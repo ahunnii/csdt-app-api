@@ -112,15 +112,18 @@ class Project(models.Model):
     tags = models.ManyToManyField('Tag')
     modified_date_history = ArrayField(
         models.DateTimeField(),
-        default=list
+        default=list,
+        null=True
     )
     modified_data_history = ArrayField(
         models.CharField(max_length=255),
-        default=list
+        default=list,
+        null=True
     )
     modified_thumbnail_history = ArrayField(
         models.CharField(max_length=255),
-        default=list
+        default=list,
+        null=True
         )
 
     def __str__(self):
