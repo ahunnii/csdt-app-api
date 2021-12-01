@@ -177,7 +177,7 @@ class StaffApplicationsApiTests(TestCase):
         self.assertEqual(self.app1.name, payload['name'])
 
     def test_full_update_application(self):
-        """Test staff update to application with patch"""
+        """Test staff update to application with put"""
         payload = {
             "name": "Graffiti",
             "link": "graffiti/index.html",

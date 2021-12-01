@@ -41,7 +41,8 @@ def sample_tag(name='High School'):
 def sample_software(**params):
     """Create and return a sample software"""
     defaults = {
-        'name': 'Adinkra',
+        'name': 'Adinkra Animations',
+        'tool': 0,
         'default_file': 'Cool spiral',
         'application': 1,
     }

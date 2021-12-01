@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, \
 
 from django.core.exceptions import PermissionDenied
 
-from core.models import Tag, Project, Application, Software
+from core.models import Tag, Project, Application, Software, Tool
 
 from project import serializers
 
@@ -156,13 +156,42 @@ class ApplicationViewSet(BaseProjectAttrViewSet):
     queryset = Application.objects.all()
 
 
-class SoftwareViewSet(viewsets.ModelViewSet):
+class SoftwareViewSet(BaseProjectAttrViewSet):
     """Manage software in the database"""
     serializer_class = serializers.SoftwareSerializer
     queryset = Software.objects.all()
-    authentication_classes = (TokenAuthentication, )
-    permission_classes = (IsAuthenticated, )
 
-    def get_queryset(self):
-        """Retrieve the software for the authenticated user"""
-        return self.queryset.order_by('-name')
+    def get_serializer_class(self):
+        """Return the appropriate serializer class"""
+        if self.action == 'retrieve':
+            return serializers.SoftwareDetailSerializer
+        elif self.action == 'upload_data':
+            return serializers.SoftwareDataSerializer
+
+        return self.serializer_class
+
+    @action(methods=['POST'], detail=True, url_path='upload-data')
+    def upload_data(self, request, pk=None):
+        """Upload a software's data to a software"""
+        software = self.get_object()
+        serializer = self.get_serializer(
+            software,
+            data=request.data
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class ToolViewSet(BaseProjectAttrViewSet):
+    """Manage tools in the database"""
+    serializer_class = serializers.ToolSerializer
+    queryset = Tool.objects.all()

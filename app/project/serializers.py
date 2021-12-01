@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Tag, Project, Application, Software
+from core.models import Tag, Project, Application, Software, Tool
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -25,11 +25,11 @@ class ApplicationDetailSerializer(ApplicationSerializer):
     """Serializer for application details"""
 
 
-class SoftwareSerializer(serializers.ModelSerializer):
-    """Serializer for software objects"""
+class ToolSerializer(serializers.ModelSerializer):
+    """Serializer for tool objects"""
     class Meta:
-        model = Software
-        fields = ('id', 'name', 'default_file', 'application', 'description')
+        model = Tool
+        fields = ('id', 'name')
         read_only_fields = ('id',)
 
 
@@ -70,3 +70,25 @@ class ProjectDataSerializer(serializers.ModelSerializer):
         model = Project
         fields = ('id', 'data')
         read_only_fields = ('id',)
+
+
+class SoftwareSerializer(serializers.ModelSerializer):
+    """Serializer for software objects"""
+    class Meta:
+        model = Software
+        fields = ('id', 'name', 'tool', 'default_file', 'application', 'description')
+        read_only_fields = ('id',)
+
+
+class SoftwareDataSerializer(serializers.ModelSerializer):
+    """Serializer for uploading files to Software"""
+
+    class Meta:
+        model = Software
+        fields = ('id', 'default_file')
+        read_only_fields = ('id',)
+
+
+class SoftwareDetailSerializer(SoftwareSerializer):
+    """Serializer for project details"""
+    # tags = TagSerializer(many=True, read_only=True)

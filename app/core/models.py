@@ -24,6 +24,14 @@ def project_data_file_path(instance, filename):
     return os.path.join('uploads/project/', filename)
 
 
+def software_data_file_path(instance, filename):
+    """Generate file path for new software"""
+    ext = filename.split('.')[-1]
+    filename = f'{uuid.uuid4()}.{ext}'
+
+    return os.path.join('uploads/software/', filename)
+
+
 class UserManager(BaseUserManager):
 
     def create_user(self, email, username, password=None, **extra_fields):
@@ -84,10 +92,22 @@ class Application(models.Model):
         return self.name
 
 
-class Software(models.Model):
-    """Software object, i.e. Adinkra"""
+class Tool(models.Model):
+    """Tool object, i.e. Adinkra, Cornrow Curves, etc"""
     name = models.CharField(max_length=255, unique=True)
-    default_file = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+class Software(models.Model):
+    """Software object, i.e. Adinkra Animations, CC Grapher, etc."""
+    name = models.CharField(max_length=255, unique=True)
+    tool = models.ForeignKey(Tool, on_delete=models.DO_NOTHING, null=True)
+    default_file = models.FileField(
+        null=True, 
+        upload_to=software_data_file_path
+    )
     application = models.ForeignKey(Application, on_delete=models.DO_NOTHING)
     description = models.TextField(blank=True)
 
@@ -103,6 +123,12 @@ class Project(models.Model):
         null=True
     )
     title = models.CharField(max_length=255)
+    tool = models.ForeignKey(
+        Tool,
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True
+    )
     application = models.ForeignKey(Application, on_delete=models.DO_NOTHING)
     data = models.FileField(null=True, upload_to=project_data_file_path)
     thumbnail = models.ImageField(null=True, upload_to=project_image_file_path)

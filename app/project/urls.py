@@ -9,6 +9,7 @@ router.register('tags', views.TagViewSet)
 router.register('applications', views.ApplicationViewSet)
 router.register('softwares', views.SoftwareViewSet)
 router.register('projects', views.ProjectViewSet)
+router.register('tools', views.ToolViewSet)
 
 app_name = 'project'
 

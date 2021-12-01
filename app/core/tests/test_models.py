@@ -98,8 +98,12 @@ class ModelTests(TestCase):
             link='something',
             description='Something'
         )
+        tool = models.Tool.objects.create(
+            name="Adinkra"
+        )
         software = models.Software.objects.create(
-            name="Adinkra",
+            name="Adinkra Animations",
+            tool=tool,
             default_file="Default data to load",
             application=app
         )
